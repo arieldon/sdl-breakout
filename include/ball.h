@@ -13,5 +13,6 @@ typedef struct {
 } Ball;
 
 SDL_Texture *load_ball(SDL_Renderer *, const char *);
+int choose_dx(void);
 
 #endif

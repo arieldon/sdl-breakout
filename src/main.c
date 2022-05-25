@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <SDL2/SDL.h>
 
@@ -18,6 +19,8 @@ int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
+
+    srand(time(0));
 
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
@@ -38,8 +41,8 @@ int main(int argc, char *argv[])
 
     Ball ball = {
         // Send ball in random direction.
-        .x_velocity = 1,
-        .y_velocity = 0,
+        .x_velocity = choose_dx(),
+        .y_velocity = choose_dx(),
 
         // Center ball.
         .image = {

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <SDL2/SDL.h>
 
 #include "ball.h"
@@ -22,4 +24,9 @@ SDL_Texture *load_ball(SDL_Renderer *renderer, const char *path)
     SDL_FreeSurface(surface);
 
     return texture;
+}
+
+inline int choose_dx(void)
+{
+    return rand() % 2 ? 1 : -1;
 }
