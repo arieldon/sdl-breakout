@@ -9,6 +9,8 @@
 #define PADDLE_WIDTH    75
 #define PADDLE_HEIGHT   25
 
+#define BALL_DIAMETER   16
+
 int main(int argc, char *argv[])
 {
     (void)argc;
@@ -31,11 +33,34 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    SDL_Surface *ball_surface = SDL_LoadBMP("assets/ball.bmp");
+    if (!ball_surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to load ball BMP \
+                image file: %s", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Texture *ball_texture = SDL_CreateTextureFromSurface(renderer,
+            ball_surface);
+    if (!ball_texture) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to create SDL \
+                texture for the ball from its SDL surface: %s",
+                SDL_GetError());
+        return 1;
+    }
+    SDL_FreeSurface(ball_surface);
+
     SDL_Rect paddle = {
         .x = WINDOW_WIDTH / 2 - PADDLE_WIDTH / 2,
         .y = WINDOW_HEIGHT - 100,
         .w = PADDLE_WIDTH,
         .h = PADDLE_HEIGHT,
+    };
+    SDL_Rect ball = {
+        .x = WINDOW_WIDTH / 2,
+        .y = WINDOW_HEIGHT / 2,
+        .w = BALL_DIAMETER,
+        .h = BALL_DIAMETER,
     };
 
     for (;;) {
@@ -67,6 +92,9 @@ int main(int argc, char *argv[])
         // Refresh paddle.
         SDL_SetRenderDrawColor(renderer, 58, 139, 232, 255);
         SDL_RenderFillRect(renderer, &paddle);
+
+        // Refresh ball.
+        SDL_RenderCopy(renderer, ball_texture, NULL, &ball);
 
         // Draw a black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
