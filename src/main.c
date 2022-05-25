@@ -3,13 +3,13 @@
 
 #include <SDL2/SDL.h>
 
-#define WINDOW_WIDTH    600
-#define WINDOW_HEIGHT   800
+#include "ball.h"
+
+#define WINDOW_WIDTH    800
+#define WINDOW_HEIGHT   1200
 
 #define PADDLE_WIDTH    75
 #define PADDLE_HEIGHT   25
-
-#define BALL_DIAMETER   16
 
 int main(int argc, char *argv[])
 {
@@ -33,34 +33,31 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    SDL_Surface *ball_surface = SDL_LoadBMP("assets/ball.bmp");
-    if (!ball_surface) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to load ball BMP \
-                image file: %s", SDL_GetError());
-        return 1;
-    }
+    Ball ball = {
+        // Send ball in random direction.
+        .x_velocity = 1,
+        .y_velocity = 0,
 
-    SDL_Texture *ball_texture = SDL_CreateTextureFromSurface(renderer,
-            ball_surface);
-    if (!ball_texture) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to create SDL \
-                texture for the ball from its SDL surface: %s",
-                SDL_GetError());
+        // Center ball.
+        .image = {
+            .x = WINDOW_WIDTH / 2,
+            .y = WINDOW_HEIGHT / 2,
+            .w = BALL_DIAMETER,
+            .h = BALL_DIAMETER,
+        },
+
+        // Load ball.
+        .texture = load_ball(renderer, "./assets/ball.bmp"),
+    };
+    if (!ball.texture) {
         return 1;
     }
-    SDL_FreeSurface(ball_surface);
 
     SDL_Rect paddle = {
         .x = WINDOW_WIDTH / 2 - PADDLE_WIDTH / 2,
         .y = WINDOW_HEIGHT - 100,
         .w = PADDLE_WIDTH,
         .h = PADDLE_HEIGHT,
-    };
-    SDL_Rect ball = {
-        .x = WINDOW_WIDTH / 2,
-        .y = WINDOW_HEIGHT / 2,
-        .w = BALL_DIAMETER,
-        .h = BALL_DIAMETER,
     };
 
     for (;;) {
@@ -86,6 +83,14 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Update position and velocity of ball.
+        ball.image.x += ball.x_velocity;
+        ball.image.y += ball.y_velocity;
+        if (ball.image.x < 0 || ball.image.x + BALL_DIAMETER > WINDOW_WIDTH)
+            ball.x_velocity = -ball.x_velocity;
+        if (ball.image.y < 0 || ball.image.y + BALL_DIAMETER > WINDOW_HEIGHT)
+            ball.y_velocity = -ball.y_velocity;
+
         // Clear the screen to draw the next frame.
         SDL_RenderClear(renderer);
 
@@ -94,7 +99,7 @@ int main(int argc, char *argv[])
         SDL_RenderFillRect(renderer, &paddle);
 
         // Refresh ball.
-        SDL_RenderCopy(renderer, ball_texture, NULL, &ball);
+        SDL_RenderCopy(renderer, ball.texture, NULL, &ball.image);
 
         // Draw a black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
