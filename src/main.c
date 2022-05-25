@@ -8,6 +8,9 @@
 #define WINDOW_WIDTH    800
 #define WINDOW_HEIGHT   1200
 
+#define FRAMES_PER_SEC  60
+#define TICKS_PER_FRAME (1000 / FRAMES_PER_SEC)
+
 #define PADDLE_WIDTH    75
 #define PADDLE_HEIGHT   25
 
@@ -61,6 +64,8 @@ int main(int argc, char *argv[])
     };
 
     for (;;) {
+        unsigned int start = SDL_GetTicks();
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -106,6 +111,11 @@ int main(int argc, char *argv[])
 
         // Push the new frame.
         SDL_RenderPresent(renderer);
+
+        // Stall to limit FPS and thus decrease speed of ball.
+        unsigned int elapsed_time = SDL_GetTicks() - start;
+        if (elapsed_time < TICKS_PER_FRAME)
+            SDL_Delay(TICKS_PER_FRAME - elapsed_time);
     }
 
 exit:
