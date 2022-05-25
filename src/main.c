@@ -26,16 +26,16 @@ int main(int argc, char *argv[])
     SDL_Renderer *renderer = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to initialize SDL: \
-                %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to initialize SDL: %s", SDL_GetError());
         return 1;
     }
 
     if (SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT,
                 SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC, &window,
                 &renderer)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "failed to create window \
-                and renderer: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to create window and renderer: %s", SDL_GetError());
         return 1;
     }
 
