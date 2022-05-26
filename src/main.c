@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
 exit:
     TTF_CloseFont(font);
 
+    SDL_DestroyTexture(ball.texture);
     SDL_DestroyTexture(text_texture);
 
     SDL_DestroyRenderer(renderer);
