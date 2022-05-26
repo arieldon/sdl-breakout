@@ -6,8 +6,8 @@
 
 #include "ball.h"
 
-#define WINDOW_WIDTH    800
-#define WINDOW_HEIGHT   1200
+#define WINDOW_WIDTH    600
+#define WINDOW_HEIGHT   800
 
 #define FRAMES_PER_SEC  60
 #define TICKS_PER_FRAME (1000 / FRAMES_PER_SEC)
