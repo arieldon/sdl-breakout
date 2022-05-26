@@ -15,6 +15,18 @@
 #define PADDLE_WIDTH    75
 #define PADDLE_HEIGHT   25
 
+#define TARGET_WIDTH    PADDLE_WIDTH
+#define TARGET_HEIGHT   15
+#define TARGET_ROWS     5
+#define TARGET_COLUMNS  5
+#define TARGET_TOTAL    (TARGET_ROWS * TARGET_COLUMNS)
+#define TARGET_MARGIN_X 40
+#define TARGET_MARGIN_Y 20
+#define TARGETS_WIDTH   (TARGET_COLUMNS * TARGET_WIDTH + \
+        (TARGET_COLUMNS - 1) * TARGET_MARGIN_X)
+#define TARGET_OFFSET_X (WINDOW_WIDTH / 2 - TARGETS_WIDTH / 2)
+#define TARGET_OFFSET_Y 50
+
 int main(int argc, char *argv[])
 {
     (void)argc;
@@ -65,6 +77,17 @@ int main(int argc, char *argv[])
         .w = PADDLE_WIDTH,
         .h = PADDLE_HEIGHT,
     };
+
+    SDL_Rect targets[TARGET_TOTAL];
+    for (int row = 0; row < TARGET_ROWS; ++row) {
+        for (int column = 0; column < TARGET_COLUMNS; ++column) {
+            SDL_Rect *target = &targets[row * TARGET_COLUMNS + column];
+            target->x = column * (TARGET_WIDTH + TARGET_MARGIN_X) + TARGET_OFFSET_X;
+            target->y = row * (TARGET_HEIGHT + TARGET_MARGIN_Y) + TARGET_OFFSET_Y;
+            target->w = TARGET_WIDTH;
+            target->h = TARGET_HEIGHT;
+        }
+    }
 
     for (;;) {
         unsigned int start = SDL_GetTicks();
@@ -128,6 +151,10 @@ int main(int argc, char *argv[])
 
         // Refresh ball.
         SDL_RenderCopy(renderer, ball.texture, NULL, &ball.image);
+
+        // Refresh targets.
+        SDL_SetRenderDrawColor(renderer, 226, 198, 86, 255);
+        SDL_RenderFillRects(renderer, targets, TARGET_TOTAL);
 
         // Draw a black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
