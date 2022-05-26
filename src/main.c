@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
 
     Ball ball = {
         // Send ball in random direction.
-        .x_velocity = choose_dx(),
-        .y_velocity = choose_dx(),
+        .x_velocity = choose_dx() * 2,
+        .y_velocity = choose_dx() * 2,
 
         // Center ball.
         .image = {
