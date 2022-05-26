@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     };
 
     SDL_Rect targets[TARGET_TOTAL];
+    int targets_active = TARGET_TOTAL;
     for (int row = 0; row < TARGET_ROWS; ++row) {
         for (int column = 0; column < TARGET_COLUMNS; ++column) {
             SDL_Rect *target = &targets[row * TARGET_COLUMNS + column];
@@ -127,6 +128,7 @@ int main(int argc, char *argv[])
         if (ball.image.y <= 0 || ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT)
             ball.y_velocity = -ball.y_velocity;
 
+        // Check for collision between ball and paddle.
         SDL_Rect intersection = {0};
         if (SDL_IntersectRect(&ball.image, &paddle, &intersection)) {
             if (ball.x_velocity > 0 && intersection.x - paddle.x <= BALL_RADIUS)
@@ -136,6 +138,16 @@ int main(int argc, char *argv[])
                 ball.x_velocity = -ball.x_velocity;
             if (intersection.y == paddle.y)
                 ball.y_velocity = -ball.y_velocity;
+        }
+
+        // Check for collision between ball and any target.
+        for (int i = 0; i < targets_active; ++i) {
+            if (SDL_IntersectRect(&ball.image, &targets[i], &intersection)) {
+                SDL_Rect temporary_target = targets[--targets_active];
+                targets[targets_active] = targets[i];
+                targets[i] = temporary_target;
+                ball.y_velocity = -ball.y_velocity;
+            }
         }
 
         // Update position of ball.
@@ -154,7 +166,7 @@ int main(int argc, char *argv[])
 
         // Refresh targets.
         SDL_SetRenderDrawColor(renderer, 226, 198, 86, 255);
-        SDL_RenderFillRects(renderer, targets, TARGET_TOTAL);
+        SDL_RenderFillRects(renderer, targets, targets_active);
 
         // Draw a black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
