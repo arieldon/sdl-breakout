@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "ball.h"
 
@@ -27,6 +28,8 @@
 #define TARGET_OFFSET_X (WINDOW_WIDTH / 2 - TARGETS_WIDTH / 2)
 #define TARGET_OFFSET_Y 50
 
+#define FONT_SIZE   64
+
 int main(int argc, char *argv[])
 {
     (void)argc;
@@ -36,10 +39,17 @@ int main(int argc, char *argv[])
 
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
+    TTF_Font *font = NULL;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
                 "failed to initialize SDL: %s", SDL_GetError());
+        return 1;
+    }
+
+    if (TTF_Init() < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to initialize SDL TTF: %s", TTF_GetError());
         return 1;
     }
 
@@ -50,6 +60,38 @@ int main(int argc, char *argv[])
                 "failed to create window and renderer: %s", SDL_GetError());
         return 1;
     }
+
+    font = TTF_OpenFont("./assets/Inconsolata-Bold.ttf", FONT_SIZE);
+    if (!font) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to open font: %s", TTF_GetError());
+        return 1;
+    }
+
+    SDL_Color white = {
+        .r = 255,
+        .g = 255,
+        .b = 255,
+        .a = 255
+    };
+    SDL_Surface *text_surface = TTF_RenderText_Solid(font, "GAME OVER.", white);
+    if (!text_surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to render text surface: %s", TTF_GetError());
+        return 1;
+    }
+
+    int text_width = text_surface->w;
+    int text_height = text_surface->h;
+    SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer,
+            text_surface);
+    if (!text_texture) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to create text texture from text surface: %s",
+                TTF_GetError());
+        return 1;
+    }
+    SDL_FreeSurface(text_surface);
 
     Ball ball = {
         // Send ball in random direction.
@@ -118,7 +160,6 @@ int main(int argc, char *argv[])
         // End the game when ball falls below paddle. Note (0, 0) coordinate
         // sits at top left.
         if (ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT) {
-            puts("Game over.");
             break;
         }
 
@@ -180,10 +221,34 @@ int main(int argc, char *argv[])
             SDL_Delay(TICKS_PER_FRAME - elapsed_time);
     }
 
+    SDL_RenderClear(renderer);
+    SDL_Rect text_rect = {
+        .x = WINDOW_WIDTH / 2 - text_width / 2,
+        .y = WINDOW_HEIGHT / 2 - text_height / 2,
+        .w = text_width,
+        .h = text_height,
+    };
+    SDL_QueryTexture(text_texture, NULL, NULL, &text_width, &text_height);
+    SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
+    SDL_RenderPresent(renderer);
+    for (;;) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN &&
+                    event.key.keysym.sym == SDLK_SPACE))
+                goto exit;
+        }
+    }
+
 exit:
+    TTF_CloseFont(font);
+
+    SDL_DestroyTexture(text_texture);
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+    TTF_Quit();
     SDL_Quit();
 
     return 0;
