@@ -3,7 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-#define BALL_DIAMETER 16
+#define BALL_DIAMETER   16
+#define BALL_RADIUS     (BALL_DIAMETER / 2)
 
 typedef struct {
     int x_velocity;

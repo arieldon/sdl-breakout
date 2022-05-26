@@ -98,27 +98,26 @@ int main(int argc, char *argv[])
             break;
         }
 
+        // Check for collision between ball and bounds.
+        if (ball.image.x <= 0 || ball.image.x + BALL_DIAMETER >= WINDOW_WIDTH)
+            ball.x_velocity = -ball.x_velocity;
+        if (ball.image.y <= 0 || ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT)
+            ball.y_velocity = -ball.y_velocity;
+
+        SDL_Rect intersection = {0};
+        if (SDL_IntersectRect(&ball.image, &paddle, &intersection)) {
+            if (ball.x_velocity > 0 && intersection.x - paddle.x <= BALL_RADIUS)
+                ball.x_velocity = -ball.x_velocity;
+            else if (ball.x_velocity < 0
+                    && paddle.x + paddle.w - intersection.x <= BALL_RADIUS)
+                ball.x_velocity = -ball.x_velocity;
+            if (intersection.y == paddle.y)
+                ball.y_velocity = -ball.y_velocity;
+        }
+
         // Update position of ball.
         ball.image.x += ball.x_velocity;
         ball.image.y += ball.y_velocity;
-
-        // Check for collision between ball and bounds.
-        if (ball.image.x < 0 || ball.image.x + BALL_DIAMETER > WINDOW_WIDTH)
-            ball.x_velocity = -ball.x_velocity;
-        if (ball.image.y < 0 || ball.image.y + BALL_DIAMETER > WINDOW_HEIGHT)
-            ball.y_velocity = -ball.y_velocity;
-
-#define X_COLLISION (ball.image.x + BALL_DIAMETER >= paddle.x \
-        && ball.image.x <= paddle.x + paddle.w)
-#define Y_COLLISION (ball.image.y + BALL_DIAMETER >= paddle.y \
-        && ball.image.y <= paddle.y + paddle.h)
-
-        // Check for collision between ball and paddle.
-        if (X_COLLISION && Y_COLLISION)
-            ball.y_velocity = -ball.y_velocity;
-
-#undef X_COLLISION
-#undef Y_COLLISION
 
         // Clear the screen to draw the next frame.
         SDL_RenderClear(renderer);
