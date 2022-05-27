@@ -1,7 +1,9 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#define FONT_SIZE   64
+enum {
+    FONT_SIZE = 64,
+};
 
 typedef struct {
     char *content;
@@ -12,7 +14,8 @@ typedef struct {
     SDL_Rect rect;
 } Text;
 
-int create_text(SDL_Renderer *renderer, Text *text);
-void center_text(Text *text, int window_width, int window_height);
+int init_text(SDL_Renderer *, Text *);
+void center_text(Text *, int window_width, int window_height);
+void write_text(SDL_Renderer *, Text *);
 
 #endif

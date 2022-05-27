@@ -3,7 +3,7 @@
 
 #include "text.h"
 
-int create_text(SDL_Renderer *renderer, Text *text)
+int init_text(SDL_Renderer *renderer, Text *text)
 {
     SDL_Surface *surface = TTF_RenderText_Solid(text->font, text->content,
             (SDL_Color){ 255, 255, 255, 255 });
@@ -33,4 +33,12 @@ void center_text(Text *text, int window_width, int window_height)
     text->rect.y = window_height / 2 - text->height / 2;
     text->rect.w = text->width;
     text->rect.h = text->height;
+}
+
+void write_text(SDL_Renderer *renderer, Text *text)
+{
+    SDL_RenderClear(renderer);
+    SDL_QueryTexture(text->texture, NULL, NULL, &text->width, &text->height);
+    SDL_RenderCopy(renderer, text->texture, NULL, &text->rect);
+    SDL_RenderPresent(renderer);
 }

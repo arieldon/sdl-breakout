@@ -206,21 +206,17 @@ int main(int argc, char *argv[])
         .font = font,
         .content = victory ? "VICTORY." : "GAME OVER.",
     };
-    if (create_text(renderer, &end_text) == -1) {
+    if (init_text(renderer, &end_text) == -1) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
                 "failed to create text for end of game");
         return 1;
     }
     center_text(&end_text, WINDOW_WIDTH, WINDOW_HEIGHT);
+    write_text(renderer, &end_text);
 
-    SDL_RenderClear(renderer);
-    SDL_QueryTexture(end_text.texture, NULL, NULL, &end_text.width,
-            &end_text.height);
-    SDL_RenderCopy(renderer, end_text.texture, NULL, &end_text.rect);
-    SDL_RenderPresent(renderer);
     for (;;) {
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        if (SDL_WaitEvent(&event)) {
             if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN &&
                     event.key.keysym.sym == SDLK_SPACE))
                 goto exit;
