@@ -189,14 +189,9 @@ int main(int argc, char *argv[])
     center_text(&end_text, WINDOW_WIDTH, WINDOW_HEIGHT);
     write_text(renderer, &end_text);
 
-    for (;;) {
-        SDL_Event event;
-        if (SDL_WaitEvent(&event)) {
-            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN &&
-                    event.key.keysym.sym == SDLK_SPACE))
-                goto exit;
-        }
-    }
+    // Any event leads to exit. All roads lead to Rome.
+    SDL_Event event;
+    SDL_WaitEvent(&event);
 
 exit:
     TTF_CloseFont(font);
