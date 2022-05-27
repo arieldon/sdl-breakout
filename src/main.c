@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 
         // Center ball.
         .image = {
-            .x = WINDOW_WIDTH / 2,
-            .y = WINDOW_HEIGHT / 2,
+            .x = WINDOW_WIDTH / 2 - BALL_RADIUS,
+            .y = WINDOW_HEIGHT / 2 - BALL_RADIUS,
             .w = BALL_DIAMETER,
             .h = BALL_DIAMETER,
         },
