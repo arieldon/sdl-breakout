@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -6,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "ball.h"
+#include "text.h"
 
 #define WINDOW_WIDTH    600
 #define WINDOW_HEIGHT   800
@@ -27,8 +29,6 @@
         (TARGET_COLUMNS - 1) * TARGET_MARGIN_X)
 #define TARGET_OFFSET_X (WINDOW_WIDTH / 2 - TARGETS_WIDTH / 2)
 #define TARGET_OFFSET_Y 50
-
-#define FONT_SIZE   64
 
 int main(int argc, char *argv[])
 {
@@ -67,31 +67,6 @@ int main(int argc, char *argv[])
                 "failed to open font: %s", TTF_GetError());
         return 1;
     }
-
-    SDL_Color white = {
-        .r = 255,
-        .g = 255,
-        .b = 255,
-        .a = 255
-    };
-    SDL_Surface *text_surface = TTF_RenderText_Solid(font, "GAME OVER.", white);
-    if (!text_surface) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                "failed to render text surface: %s", TTF_GetError());
-        return 1;
-    }
-
-    int text_width = text_surface->w;
-    int text_height = text_surface->h;
-    SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer,
-            text_surface);
-    if (!text_texture) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
-                "failed to create text texture from text surface: %s",
-                TTF_GetError());
-        return 1;
-    }
-    SDL_FreeSurface(text_surface);
 
     Ball ball = {
         // Send ball in random direction.
@@ -132,6 +107,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    bool victory = false;
     for (;;) {
         unsigned int start = SDL_GetTicks();
 
@@ -181,6 +157,11 @@ int main(int argc, char *argv[])
                 ball.y_velocity = -ball.y_velocity;
         }
 
+        if (targets_active == 0) {
+            victory = true;
+            break;
+        }
+
         // Check for collision between ball and any target.
         for (int i = 0; i < targets_active; ++i) {
             if (SDL_IntersectRect(&ball.image, &targets[i], &intersection)) {
@@ -221,15 +202,21 @@ int main(int argc, char *argv[])
             SDL_Delay(TICKS_PER_FRAME - elapsed_time);
     }
 
-    SDL_RenderClear(renderer);
-    SDL_Rect text_rect = {
-        .x = WINDOW_WIDTH / 2 - text_width / 2,
-        .y = WINDOW_HEIGHT / 2 - text_height / 2,
-        .w = text_width,
-        .h = text_height,
+    Text end_text = {
+        .font = font,
+        .content = victory ? "VICTORY." : "GAME OVER.",
     };
-    SDL_QueryTexture(text_texture, NULL, NULL, &text_width, &text_height);
-    SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
+    if (create_text(renderer, &end_text) == -1) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "failed to create text for end of game");
+        return 1;
+    }
+    center_text(&end_text, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    SDL_RenderClear(renderer);
+    SDL_QueryTexture(end_text.texture, NULL, NULL, &end_text.width,
+            &end_text.height);
+    SDL_RenderCopy(renderer, end_text.texture, NULL, &end_text.rect);
     SDL_RenderPresent(renderer);
     for (;;) {
         SDL_Event event;
@@ -244,7 +231,7 @@ exit:
     TTF_CloseFont(font);
 
     SDL_DestroyTexture(ball.texture);
-    SDL_DestroyTexture(text_texture);
+    SDL_DestroyTexture(end_text.texture);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
