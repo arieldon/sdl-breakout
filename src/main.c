@@ -6,29 +6,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "ball.h"
+#include "entities.h"
 #include "text.h"
-
-#define WINDOW_WIDTH    600
-#define WINDOW_HEIGHT   800
-
-#define FRAMES_PER_SEC  60
-#define TICKS_PER_FRAME (1000 / FRAMES_PER_SEC)
-
-#define PADDLE_WIDTH    75
-#define PADDLE_HEIGHT   25
-
-#define TARGET_WIDTH    PADDLE_WIDTH
-#define TARGET_HEIGHT   15
-#define TARGET_ROWS     5
-#define TARGET_COLUMNS  5
-#define TARGET_TOTAL    (TARGET_ROWS * TARGET_COLUMNS)
-#define TARGET_MARGIN_X 40
-#define TARGET_MARGIN_Y 20
-#define TARGETS_WIDTH   (TARGET_COLUMNS * TARGET_WIDTH + \
-        (TARGET_COLUMNS - 1) * TARGET_MARGIN_X)
-#define TARGET_OFFSET_X (WINDOW_WIDTH / 2 - TARGETS_WIDTH / 2)
-#define TARGET_OFFSET_Y 50
 
 int main(int argc, char *argv[])
 {
@@ -84,10 +63,10 @@ int main(int argc, char *argv[])
         // Load ball.
         .texture = load_ball(renderer, "./assets/ball.bmp"),
     };
-    if (!ball.texture) {
+    if (!ball.texture)
         return 1;
-    }
 
+    // Initialize paddle for player.
     SDL_Rect paddle = {
         .x = WINDOW_WIDTH / 2 - PADDLE_WIDTH / 2,
         .y = WINDOW_HEIGHT - 100,
@@ -95,6 +74,7 @@ int main(int argc, char *argv[])
         .h = PADDLE_HEIGHT,
     };
 
+    // Initialize targets or bricks to hit.
     SDL_Rect targets[TARGET_TOTAL];
     int targets_active = TARGET_TOTAL;
     for (int row = 0; row < TARGET_ROWS; ++row) {
@@ -108,7 +88,7 @@ int main(int argc, char *argv[])
     }
 
     bool victory = false;
-    for (;;) {
+    while (!victory) {
         unsigned int start = SDL_GetTicks();
 
         SDL_Event event;
@@ -119,15 +99,13 @@ int main(int argc, char *argv[])
                 switch (event.key.keysym.sym) {
                 case SDLK_d:
                 case SDLK_RIGHT:
-                    if (paddle.x + PADDLE_WIDTH < WINDOW_WIDTH) {
-                        paddle.x += 10;
-                    }
+                    if (paddle.x + PADDLE_WIDTH < WINDOW_WIDTH)
+                        paddle.x += PADDLE_VELOCITY;
                     break;
                 case SDLK_a:
                 case SDLK_LEFT:
-                    if (paddle.x > 0) {
-                        paddle.x -= 10;
-                    }
+                    if (paddle.x > 0)
+                        paddle.x -= PADDLE_VELOCITY;
                     break;
                 }
             }
@@ -135,9 +113,8 @@ int main(int argc, char *argv[])
 
         // End the game when ball falls below paddle. Note (0, 0) coordinate
         // sits at top left.
-        if (ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT) {
+        if (ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT)
             break;
-        }
 
         // Check for collision between ball and bounds.
         if (ball.image.x <= 0 || ball.image.x + BALL_DIAMETER >= WINDOW_WIDTH)
@@ -157,10 +134,8 @@ int main(int argc, char *argv[])
                 ball.y_velocity = -ball.y_velocity;
         }
 
-        if (targets_active == 0) {
+        if (targets_active == 0)
             victory = true;
-            break;
-        }
 
         // Check for collision between ball and any target.
         for (int i = 0; i < targets_active; ++i) {
@@ -176,7 +151,7 @@ int main(int argc, char *argv[])
         ball.image.x += ball.x_velocity;
         ball.image.y += ball.y_velocity;
 
-        // Clear the screen to draw the next frame.
+        // Clear screen to draw next frame.
         SDL_RenderClear(renderer);
 
         // Refresh paddle.
@@ -190,7 +165,7 @@ int main(int argc, char *argv[])
         SDL_SetRenderDrawColor(renderer, 226, 198, 86, 255);
         SDL_RenderFillRects(renderer, targets, targets_active);
 
-        // Draw a black background.
+        // Draw black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 
         // Push the new frame.

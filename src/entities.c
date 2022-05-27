@@ -2,7 +2,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "ball.h"
+#include "entities.h"
 
 SDL_Texture *load_ball(SDL_Renderer *renderer, const char *path)
 {
