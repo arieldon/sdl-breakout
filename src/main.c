@@ -48,30 +48,27 @@ int main(int argc, char *argv[])
     }
 
     Ball ball = {
-        // Send ball in random direction.
-        .x_velocity = choose_dx() * 2,
-        .y_velocity = choose_dx() * 2,
-
-        // Center ball.
-        .image = {
+        .dx = BALL_DX,
+        .dy = BALL_DY,
+        .rect = {
             .x = WINDOW_WIDTH / 2 - BALL_RADIUS,
             .y = WINDOW_HEIGHT / 2 - BALL_RADIUS,
             .w = BALL_DIAMETER,
             .h = BALL_DIAMETER,
         },
-
-        // Load ball.
         .texture = load_ball(renderer, "./assets/ball.bmp"),
     };
-    if (!ball.texture)
-        return 1;
+    if (!ball.texture) return 1;
 
     // Initialize paddle for player.
-    SDL_Rect paddle = {
-        .x = WINDOW_WIDTH / 2 - PADDLE_WIDTH / 2,
-        .y = WINDOW_HEIGHT - 100,
-        .w = PADDLE_WIDTH,
-        .h = PADDLE_HEIGHT,
+    Paddle paddle = {
+        .dx = 0,
+        .rect = {
+            .x = WINDOW_WIDTH / 2 - PADDLE_WIDTH / 2,
+            .y = WINDOW_HEIGHT - PADDLE_MARGIN,
+            .w = PADDLE_WIDTH,
+            .h = PADDLE_HEIGHT,
+        },
     };
 
     // Initialize targets or bricks to hit.
@@ -99,13 +96,11 @@ int main(int argc, char *argv[])
                 switch (event.key.keysym.sym) {
                 case SDLK_d:
                 case SDLK_RIGHT:
-                    if (paddle.x + PADDLE_WIDTH < WINDOW_WIDTH)
-                        paddle.x += PADDLE_VELOCITY;
+                    if (paddle.rect.x + PADDLE_WIDTH < WINDOW_WIDTH) paddle.dx = PADDLE_DX;
                     break;
                 case SDLK_a:
                 case SDLK_LEFT:
-                    if (paddle.x > 0)
-                        paddle.x -= PADDLE_VELOCITY;
+                    if (paddle.rect.x > 0) paddle.dx = -PADDLE_DX;
                     break;
                 }
             }
@@ -113,53 +108,50 @@ int main(int argc, char *argv[])
 
         // End the game when ball falls below paddle. Note (0, 0) coordinate
         // sits at top left.
-        if (ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT)
+        if (ball.rect.y + BALL_DIAMETER >= WINDOW_HEIGHT)
             break;
 
         // Check for collision between ball and bounds.
-        if (ball.image.x <= 0 || ball.image.x + BALL_DIAMETER >= WINDOW_WIDTH)
-            ball.x_velocity = -ball.x_velocity;
-        if (ball.image.y <= 0 || ball.image.y + BALL_DIAMETER >= WINDOW_HEIGHT)
-            ball.y_velocity = -ball.y_velocity;
+        if (ball.rect.x <= 0 || ball.rect.x + BALL_DIAMETER >= WINDOW_WIDTH)
+            ball.dx = -ball.dx;
+        if (ball.rect.y <= 0 || ball.rect.y + BALL_DIAMETER >= WINDOW_HEIGHT)
+            ball.dy = -ball.dy;
 
-        // Check for collision between ball and paddle.
+        // Check for collision between ball and paddle or collision between
+        // ball and any target.
         SDL_Rect intersection = {0};
-        if (SDL_IntersectRect(&ball.image, &paddle, &intersection)) {
-            if (ball.x_velocity > 0 && intersection.x - paddle.x <= BALL_RADIUS)
-                ball.x_velocity = -ball.x_velocity;
-            else if (ball.x_velocity < 0
-                    && paddle.x + paddle.w - intersection.x <= BALL_RADIUS)
-                ball.x_velocity = -ball.x_velocity;
-            if (intersection.y == paddle.y)
-                ball.y_velocity = -ball.y_velocity;
-        }
-
-        if (targets_active == 0)
-            victory = true;
-
-        // Check for collision between ball and any target.
-        for (int i = 0; i < targets_active; ++i) {
-            if (SDL_IntersectRect(&ball.image, &targets[i], &intersection)) {
-                SDL_Rect temporary_target = targets[--targets_active];
-                targets[targets_active] = targets[i];
-                targets[i] = temporary_target;
-                ball.y_velocity = -ball.y_velocity;
+        if (SDL_IntersectRect(&ball.rect, &paddle.rect, &intersection)) {
+            if (ball.rect.y <= paddle.rect.y)
+                ball.dy = -ball.dy;
+        } else {
+            for (int i = 0; i < targets_active; ++i) {
+                if (SDL_IntersectRect(&ball.rect, &targets[i], &intersection)) {
+                    SDL_Rect temporary_target = targets[--targets_active];
+                    targets[targets_active] = targets[i];
+                    targets[i] = temporary_target;
+                    ball.dy = -ball.dy;
+                }
             }
         }
+        if (!targets_active) victory = true;
 
         // Update position of ball.
-        ball.image.x += ball.x_velocity;
-        ball.image.y += ball.y_velocity;
+        ball.rect.x += ball.dx;
+        ball.rect.y += ball.dy;
+
+        // Update position of paddle.
+        paddle.rect.x += paddle.dx;
+        paddle.dx = 0;
 
         // Clear screen to draw next frame.
         SDL_RenderClear(renderer);
 
         // Refresh paddle.
         SDL_SetRenderDrawColor(renderer, 58, 139, 232, 255);
-        SDL_RenderFillRect(renderer, &paddle);
+        SDL_RenderFillRect(renderer, &paddle.rect);
 
         // Refresh ball.
-        SDL_RenderCopy(renderer, ball.texture, NULL, &ball.image);
+        SDL_RenderCopy(renderer, ball.texture, NULL, &ball.rect);
 
         // Refresh targets.
         SDL_SetRenderDrawColor(renderer, 226, 198, 86, 255);

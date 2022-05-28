@@ -9,10 +9,13 @@ enum {
 
     BALL_DIAMETER   = 16,
     BALL_RADIUS     = BALL_DIAMETER / 2,
+    BALL_DX         = 0,
+    BALL_DY         = 3,
 
     PADDLE_WIDTH    = 75,
     PADDLE_HEIGHT   = 25,
-    PADDLE_VELOCITY = 10,
+    PADDLE_MARGIN   = 50,
+    PADDLE_DX       = 10,
 
     TARGET_WIDTH    = PADDLE_WIDTH,
     TARGET_HEIGHT   = 15,
@@ -21,8 +24,7 @@ enum {
     TARGET_TOTAL    = TARGET_ROWS * TARGET_COLUMNS,
     TARGET_MARGIN_X = 40,
     TARGET_MARGIN_Y = 20,
-    TARGETS_WIDTH   = TARGET_COLUMNS * TARGET_WIDTH
-        + (TARGET_COLUMNS - 1) * TARGET_MARGIN_X,
+    TARGETS_WIDTH   = TARGET_COLUMNS * TARGET_WIDTH + (TARGET_COLUMNS - 1) * TARGET_MARGIN_X,
     TARGET_OFFSET_X = WINDOW_WIDTH / 2 - TARGETS_WIDTH / 2,
     TARGET_OFFSET_Y = 50,
 
@@ -31,13 +33,17 @@ enum {
 };
 
 typedef struct {
-    int x_velocity;
-    int y_velocity;
-    SDL_Rect image;
+    int dx;
+    int dy;
+    SDL_Rect rect;
     SDL_Texture *texture;
 } Ball;
 
+typedef struct {
+    int dx;
+    SDL_Rect rect;
+} Paddle;
+
 SDL_Texture *load_ball(SDL_Renderer *, const char *);
-int choose_dx(void);
 
 #endif

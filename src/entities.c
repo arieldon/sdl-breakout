@@ -25,8 +25,3 @@ SDL_Texture *load_ball(SDL_Renderer *renderer, const char *path)
 
     return texture;
 }
-
-inline int choose_dx(void)
-{
-    return rand() % 2 ? 1 : -1;
-}
