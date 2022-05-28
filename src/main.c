@@ -123,6 +123,12 @@ int main(int argc, char *argv[])
         if (SDL_IntersectRect(&ball.rect, &paddle.rect, &intersection)) {
             if (ball.rect.y <= paddle.rect.y)
                 ball.dy = -ball.dy;
+
+            // Set velocity of the ball in the x-direction upon collision as a
+            // function of the distance between the collision point and the
+            // center of the paddle.
+            double d = (ball.rect.x + BALL_RADIUS) - (paddle.rect.x + paddle.rect.w / 2);
+            ball.dx = (d / paddle.rect.w) * 10;
         } else {
             for (int i = 0; i < targets_active; ++i) {
                 if (SDL_IntersectRect(&ball.rect, &targets[i], &intersection)) {
