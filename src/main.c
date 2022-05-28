@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "colors.h"
 #include "entities.h"
 #include "text.h"
 
@@ -72,15 +73,19 @@ int main(int argc, char *argv[])
     };
 
     // Initialize targets or bricks to hit.
-    SDL_Rect targets[TARGET_TOTAL];
+    Target targets[TARGET_TOTAL];
     int targets_active = TARGET_TOTAL;
     for (int row = 0; row < TARGET_ROWS; ++row) {
+        SDL_Color *color = &COLORS[row % COLOR_TOTAL];
         for (int column = 0; column < TARGET_COLUMNS; ++column) {
-            SDL_Rect *target = &targets[row * TARGET_COLUMNS + column];
-            target->x = column * (TARGET_WIDTH + TARGET_MARGIN_X) + TARGET_OFFSET_X;
-            target->y = row * (TARGET_HEIGHT + TARGET_MARGIN_Y) + TARGET_OFFSET_Y;
-            target->w = TARGET_WIDTH;
-            target->h = TARGET_HEIGHT;
+            Target *target = &targets[row * TARGET_COLUMNS + column];
+            target->color = color;
+
+            SDL_Rect *rect = &target->rect;
+            rect->x = column * (TARGET_WIDTH + TARGET_MARGIN_X) + TARGET_OFFSET_X;
+            rect->y = row * (TARGET_HEIGHT + TARGET_MARGIN_Y) + TARGET_OFFSET_Y;
+            rect->w = TARGET_WIDTH;
+            rect->h = TARGET_HEIGHT;
         }
     }
 
@@ -131,17 +136,18 @@ int main(int argc, char *argv[])
             ball.dx = (d / paddle.rect.w) * 10;
         } else {
             for (int i = 0; i < targets_active; ++i) {
-                if (SDL_IntersectRect(&ball.rect, &targets[i], &intersection)) {
+                SDL_Rect *target = &targets[i].rect;
+                if (SDL_IntersectRect(&ball.rect, target, &intersection)) {
                     // Respond to collision.
-                    if (ball.rect.y + BALL_RADIUS <= targets[i].y
-                            || ball.rect.y + BALL_RADIUS >= targets[i].y + targets[i].h)
+                    if (ball.rect.y + BALL_RADIUS <= target->y
+                            || ball.rect.y + BALL_RADIUS >= target->y + target->h)
                         ball.dy = -ball.dy;
-                    if (ball.rect.x + BALL_RADIUS <= targets[i].x
-                            || ball.rect.x + BALL_RADIUS >= targets[i].x + targets[i].w)
+                    if (ball.rect.x + BALL_RADIUS <= target->x
+                            || ball.rect.x + BALL_RADIUS >= target->x + target->w)
                         ball.dx = -ball.dx;
 
                     // Disable target.
-                    SDL_Rect temporary_target = targets[--targets_active];
+                    Target temporary_target = targets[--targets_active];
                     targets[targets_active] = targets[i];
                     targets[i] = temporary_target;
                 }
@@ -168,8 +174,11 @@ int main(int argc, char *argv[])
         SDL_RenderCopy(renderer, ball.texture, NULL, &ball.rect);
 
         // Refresh targets.
-        SDL_SetRenderDrawColor(renderer, 226, 198, 86, 255);
-        SDL_RenderFillRects(renderer, targets, targets_active);
+        for (int i = 0; i < targets_active; ++i) {
+            SDL_Color *color = targets[i].color;
+            SDL_SetRenderDrawColor(renderer, color->r, color->g, color->b, color->a);
+            SDL_RenderFillRect(renderer, &targets[i].rect);
+        }
 
         // Draw black background.
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);

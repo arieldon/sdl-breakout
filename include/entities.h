@@ -19,7 +19,7 @@ enum {
 
     TARGET_WIDTH    = PADDLE_WIDTH,
     TARGET_HEIGHT   = 15,
-    TARGET_ROWS     = 5,
+    TARGET_ROWS     = 6,
     TARGET_COLUMNS  = 5,
     TARGET_TOTAL    = TARGET_ROWS * TARGET_COLUMNS,
     TARGET_MARGIN_X = 40,
@@ -43,6 +43,11 @@ typedef struct {
     int dx;
     SDL_Rect rect;
 } Paddle;
+
+typedef struct {
+    SDL_Color *color;
+    SDL_Rect rect;
+} Target;
 
 SDL_Texture *load_ball(SDL_Renderer *, const char *);
 
