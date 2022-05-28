@@ -132,10 +132,18 @@ int main(int argc, char *argv[])
         } else {
             for (int i = 0; i < targets_active; ++i) {
                 if (SDL_IntersectRect(&ball.rect, &targets[i], &intersection)) {
+                    // Respond to collision.
+                    if (ball.rect.y + BALL_RADIUS <= targets[i].y
+                            || ball.rect.y + BALL_RADIUS >= targets[i].y + targets[i].h)
+                        ball.dy = -ball.dy;
+                    if (ball.rect.x + BALL_RADIUS <= targets[i].x
+                            || ball.rect.x + BALL_RADIUS >= targets[i].x + targets[i].w)
+                        ball.dx = -ball.dx;
+
+                    // Disable target.
                     SDL_Rect temporary_target = targets[--targets_active];
                     targets[targets_active] = targets[i];
                     targets[i] = temporary_target;
-                    ball.dy = -ball.dy;
                 }
             }
         }
